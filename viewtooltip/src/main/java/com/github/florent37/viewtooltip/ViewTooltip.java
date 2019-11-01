@@ -16,13 +16,13 @@ import android.support.annotation.ColorInt;
 import android.support.annotation.StringRes;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
-import android.support.v4.widget.NestedScrollView;
 import android.text.Html;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.widget.FrameLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import java.util.Arrays;
@@ -40,12 +40,15 @@ public class ViewTooltip {
     private ViewTooltip(MyContext myContext, View view) {
         this.view = view;
         this.tooltip_view = new TooltipView(myContext.getContext());
-        final NestedScrollView scrollParent = findScrollParent(view);
+        final ScrollView scrollParent = findScrollParent(view);
         if (scrollParent != null) {
-            scrollParent.setOnScrollChangeListener(new NestedScrollView.OnScrollChangeListener() {
+            scrollParent.getViewTreeObserver().addOnScrollChangedListener(new ViewTreeObserver.OnScrollChangedListener() {
+                int oldScrollY = 0;
                 @Override
-                public void onScrollChange(NestedScrollView v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
+                public void onScrollChanged() {
+                    int scrollY = scrollParent.getScrollY();
                     tooltip_view.setTranslationY(tooltip_view.getTranslationY() - (scrollY - oldScrollY));
+                    oldScrollY = scrollY;
                 }
             });
         }
@@ -55,12 +58,15 @@ public class ViewTooltip {
         this.rootView = rootView;
         this.view = view;
         this.tooltip_view = new TooltipView(myContext.getContext());
-        final NestedScrollView scrollParent = findScrollParent(view);
+        final ScrollView scrollParent = findScrollParent(view);
         if (scrollParent != null) {
-            scrollParent.setOnScrollChangeListener(new NestedScrollView.OnScrollChangeListener() {
+            scrollParent.getViewTreeObserver().addOnScrollChangedListener(new ViewTreeObserver.OnScrollChangedListener() {
+                int oldScrollY = 0;
                 @Override
-                public void onScrollChange(NestedScrollView v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
+                public void onScrollChanged() {
+                    int scrollY = scrollParent.getScrollY();
                     tooltip_view.setTranslationY(tooltip_view.getTranslationY() - (scrollY - oldScrollY));
+                    oldScrollY = scrollY;
                 }
             });
         }
@@ -86,11 +92,11 @@ public class ViewTooltip {
         return new ViewTooltip(new MyContext(getActivityContext(activity)), rootView, view);
     }
 
-    private NestedScrollView findScrollParent(View view) {
+    private ScrollView findScrollParent(View view) {
         if (view.getParent() == null || !(view.getParent() instanceof View)) {
             return null;
-        } else if (view.getParent() instanceof NestedScrollView) {
-            return ((NestedScrollView) view.getParent());
+        } else if (view.getParent() instanceof ScrollView) {
+            return ((ScrollView) view.getParent());
         } else {
             return findScrollParent(((View) view.getParent()));
         }
